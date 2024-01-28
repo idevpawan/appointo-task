@@ -26,9 +26,9 @@ function MainFooter() {
             <path
               d="M7.5 5L12.5 10L7.5 15"
               stroke="#378760"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
         </span>
