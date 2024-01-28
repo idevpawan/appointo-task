@@ -54,6 +54,13 @@ body {
   margin: auto;
 }
 
+.main-container {
+  height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btn {
   display: flex;
   height: 48px;
@@ -72,6 +79,11 @@ body {
   background: #ececec;
 }
 
+.btn:disabled {
+  background-color: #dfdfdf;
+  cursor: not-allowed;
+}
+
 .btn p {
   color: var(--Dark-Dark-2, #555770);
   font-family: Poppins;
@@ -87,4 +99,16 @@ body {
 
 .underline {
   text-decoration: underline;
+}
+
+@media screen and (max-width: 890px) {
+  .bg-img-1 {
+    display: none;
+  }
+  .bg-img-2 {
+    display: none;
+  }
+  .main-box {
+    padding: 0;
+  }
 }

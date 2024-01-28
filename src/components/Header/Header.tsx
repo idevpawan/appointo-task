@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { getImage } from "../../utils";
-import Modal from "../Modal/Modal";
 import "./Header.css";
 
 function Header() {
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showMenuDown, setShowMenuDown] = useState(false);
   return (
     <div className="header-container">
@@ -23,12 +21,11 @@ function Header() {
           {showMenuDown && <MenuDropdown />}
         </li>
         <li className="header-link">Contact us</li>
-        <li onClick={() => setIsShareModalOpen(true)} className="header-btn">
+        <li className="header-btn">
           <img src={getImage("external-link.svg")} alt="" />
           Share link
         </li>
       </ul>
-      <Modal isOpen={isShareModalOpen} children={undefined}></Modal>
     </div>
   );
 }

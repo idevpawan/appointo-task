@@ -1,6 +1,8 @@
+import { useSelector } from "react-redux";
 import "./Main.css";
 
 function MainFooter() {
+  const isProceed = useSelector((state: any) => state.data.isProceed);
   return (
     <div className="main-footer">
       <p>
@@ -13,7 +15,10 @@ function MainFooter() {
           appointo
         </a>
       </p>
-      <button className="btn">
+      <button
+        disabled={!isProceed}
+        className={`btn ${!isProceed && "disable-btn"}`}
+      >
         <p>Next</p>
         <span>
           <svg

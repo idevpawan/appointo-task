@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
 import { formatDate } from "../../utils";
+import { useDispatch } from "react-redux";
+import { set } from "../../slices/reducerSlice";
 
 type ValuePiece = Date | null;
 
@@ -30,10 +32,20 @@ function Main() {
   const [value, onChange] = useState<Value>(new Date());
   const [loading, setLoading] = useState<boolean>(true);
   const [timeSlots, setTimeSlots] = useState<TimeSlotWithSelection[]>([]);
+  const [isAnySlotSelected, setIsAnySlotSelected] = useState(false);
+  const dispatch = useDispatch();
 
   let slotURL = `https://app.appointo.me/scripttag/mock_timeslots?start_date=${formatDate(
     String(value)
   )}&end_date=${formatDate(String(value), true)}`;
+
+  useEffect(() => {
+    if (isAnySlotSelected) {
+      dispatch(set(true));
+    } else {
+      dispatch(set(false));
+    }
+  }, [isAnySlotSelected]);
 
   useEffect(() => {
     setTimeSlots([]);
@@ -66,9 +78,12 @@ function Main() {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, [value]);
+
+  const tileDisabled = ({ date }: any) => {
+    return date < new Date();
+  };
 
   const handleSelect = (startTime: string, endTime: string) => {
     const updatedTimeSlots = timeSlots.map((slot) => ({
@@ -88,6 +103,8 @@ function Main() {
       };
       setTimeSlots(updatedTimeSlots);
     }
+    const isAnySelected = updatedTimeSlots.some((slot) => slot.isSelected);
+    setIsAnySlotSelected(isAnySelected);
   };
 
   return (
@@ -105,6 +122,7 @@ function Main() {
             className={"calendar-container"}
             onChange={onChange}
             value={value}
+            tileDisabled={tileDisabled}
           />
         </div>
         {/* section 2 */}

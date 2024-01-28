@@ -217,6 +217,14 @@
   font-size: 26px;
 }
 
+.react-calendar__month-view__days button:disabled {
+  background: #fff;
+}
+
+.react-calendar__month-view__days button:disabled abbr {
+  color: #a7a7a7;
+}
+
 /* responsivness */
 
 @media only screen and (max-width: 890px) {
@@ -225,7 +233,10 @@
   }
   .inner-container {
     width: 100% !important;
-    max-width: 100%;
+    max-width: -webkit-fill-available;
+  }
+  .main-footer {
+    border-radius: 0px;
   }
 }
 

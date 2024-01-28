@@ -7,9 +7,11 @@ function App() {
   return (
     <div className="app-container">
       <Header />
-      <div className="main-box">
-        <Main />
-        <MainFooter />
+      <div className="main-container">
+        <div className="main-box">
+          <Main />
+          <MainFooter />
+        </div>
       </div>
       <div className="gradient-blur" />
       <img className="bg-img-1" src={getImage("bg-image-1.svg")} alt="" />

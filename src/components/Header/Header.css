@@ -57,6 +57,7 @@
   box-shadow: 0 0 10px 1px rgb(238, 238, 238);
   padding-left: 0;
   overflow: hidden;
+  z-index: 99;
 }
 .menu-dropdown li {
   color: rgb(66, 72, 78);
@@ -78,5 +79,16 @@
 @media only screen and (max-width: 890px) {
   .header-link {
     display: none;
+  }
+  .header-image {
+    width: 150px;
+    height: auto;
+  }
+  .header-container {
+    padding: 12px;
+  }
+  .header-btn {
+    padding: 6px 10px;
+    font-size: 14px;
   }
 }
