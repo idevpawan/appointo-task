@@ -7,6 +7,8 @@ import axios from "axios";
 import { formatDate } from "../../utils";
 import { useDispatch } from "react-redux";
 import { set } from "../../slices/reducerSlice";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 type ValuePiece = Date | null;
 
@@ -75,6 +77,9 @@ function Main() {
         setTimeSlots(transformedTimeSlots);
         setLoading(false);
       } catch (error) {
+        toast.error("Something went wrong!", {
+          toastId: "success1",
+        });
         console.error("Error fetching data:", error);
       }
     };
@@ -109,6 +114,7 @@ function Main() {
 
   return (
     <div className="main">
+      <ToastContainer />
       <div className="grid-container">
         {/* section 1 */}
         <div className="inner-container first">
