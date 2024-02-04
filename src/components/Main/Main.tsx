@@ -4,7 +4,7 @@ import "./Main.css";
 import { useEffect, useState } from "react";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
-import { formatDate } from "../../utils";
+import { formatDate, selectedFormatDate } from "../../utils";
 import { useDispatch } from "react-redux";
 import { set } from "../../slices/reducerSlice";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,10 +30,19 @@ interface TimeSlotWithSelection extends TimeSlot {
   formattedEndTime: string;
 }
 
+interface monthSlots {
+  date: string;
+  slots: TimeSlotWithSelection[];
+}
+
 function Main() {
   const [value, onChange] = useState<Value>(new Date());
   const [loading, setLoading] = useState<boolean>(true);
-  const [timeSlots, setTimeSlots] = useState<TimeSlotWithSelection[]>([]);
+  const [monthClicked, setMonthClicked] = useState(true);
+  const [timeSlots, setTimeSlots] = useState<monthSlots[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlotWithSelection[]>(
+    []
+  );
   const [isAnySlotSelected, setIsAnySlotSelected] = useState(false);
   const dispatch = useDispatch();
 
@@ -56,60 +65,89 @@ function Main() {
       try {
         const response = await axios.get<ApiResponse[]>(slotURL);
 
-        const apiData = response.data[0];
+        const apiData = response.data;
 
-        const transformedTimeSlots: TimeSlotWithSelection[] = apiData.slots.map(
-          (slot) => ({
-            start_time: slot.start_time,
-            end_time: slot.end_time,
-            isSelected: false,
-            formattedStartTime: new Date(slot.start_time).toLocaleTimeString(
-              [],
-              { hour: "2-digit", minute: "2-digit", hour12: true }
-            ),
-            formattedEndTime: new Date(slot.end_time).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }),
+        const transformedTimeSlots: monthSlots[] = apiData.map(
+          (slotData: any) => ({
+            date: slotData.date,
+            slots: slotData.slots.map((slot: TimeSlot) => ({
+              start_time: slot.start_time,
+              end_time: slot.end_time,
+              isSelected: false,
+              formattedStartTime: new Date(slot.start_time).toLocaleTimeString(
+                [],
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                }
+              ),
+              formattedEndTime: new Date(slot.end_time).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              }),
+            })),
           })
         );
         setTimeSlots(transformedTimeSlots);
         setLoading(false);
       } catch (error) {
         toast.error("Something went wrong!", {
-          toastId: "success1",
+          toastId: "error",
         });
         console.error("Error fetching data:", error);
       }
     };
     fetchData();
-  }, [value]);
+  }, [monthClicked]);
+
+  useEffect(() => {
+    timeSlots.map((e) => {
+      if (e.date === selectedFormatDate(String(value))) {
+        return setAvailableSlots(e.slots);
+      }
+    });
+  }, [value, timeSlots]);
 
   const tileDisabled = ({ date }: any) => {
     return date < new Date();
   };
 
-  const handleSelect = (startTime: string, endTime: string) => {
-    const updatedTimeSlots = timeSlots.map((slot) => ({
-      ...slot,
-      isSelected: false,
-    }));
-    const slotIndex = updatedTimeSlots.findIndex(
-      (slot) =>
-        slot.formattedStartTime === startTime &&
-        slot.formattedEndTime === endTime
-    );
-
-    if (slotIndex !== -1) {
-      updatedTimeSlots[slotIndex] = {
-        ...updatedTimeSlots[slotIndex],
-        isSelected: !updatedTimeSlots[slotIndex].isSelected,
+  const handleSelect = (
+    _selectedDate: string,
+    startTime: string,
+    endTime: string
+  ) => {
+    const updatedTimeSlots = timeSlots.map((slot) => {
+      if (slot.date === selectedFormatDate(String(value))) {
+        return {
+          ...slot,
+          slots: slot.slots.map((timeSlot) => ({
+            ...timeSlot,
+            isSelected:
+              timeSlot.formattedStartTime === startTime &&
+              timeSlot.formattedEndTime === endTime
+                ? !timeSlot.isSelected
+                : false,
+          })),
+        };
+      }
+      return {
+        ...slot,
+        slots: slot.slots.map((timeSlot) => ({
+          ...timeSlot,
+          isSelected: false,
+        })),
       };
-      setTimeSlots(updatedTimeSlots);
-    }
-    const isAnySelected = updatedTimeSlots.some((slot) => slot.isSelected);
-    setIsAnySlotSelected(isAnySelected);
+    });
+
+    setIsAnySlotSelected(
+      updatedTimeSlots.some((slot) =>
+        slot.slots.some((timeSlot) => timeSlot.isSelected)
+      )
+    );
+    setTimeSlots(updatedTimeSlots);
   };
 
   return (
@@ -125,10 +163,22 @@ function Main() {
           <Calendar
             prev2Label={false}
             next2Label={false}
-            className={"calendar-container"}
+            onDrillDown={(e) => {
+              if (e.view === "month") {
+                onChange(e.activeStartDate);
+              }
+            }}
             onChange={onChange}
+            className={"calendar-container"}
+            onClickMonth={() => setMonthClicked(!monthClicked)}
             value={value}
             tileDisabled={tileDisabled}
+            onActiveStartDateChange={(e) => {
+              if (e.view === "month") {
+                onChange(e.activeStartDate);
+                setMonthClicked(!monthClicked);
+              }
+            }}
           />
         </div>
         {/* section 2 */}
@@ -146,10 +196,11 @@ function Main() {
                 <span className="skeleton">&zwnj;</span>
               </div>
             ) : (
-              timeSlots.map((slot) => {
+              availableSlots.map((slot) => {
                 return (
                   <SlotBox
                     startTime={slot.formattedStartTime}
+                    selectedDate={formatDate(String(value))}
                     endTime={slot.formattedEndTime}
                     isActive={slot.isSelected}
                     onClick={handleSelect}
@@ -171,15 +222,17 @@ const SlotBox = ({
   startTime,
   endTime,
   onClick,
+  selectedDate,
 }: {
   isActive?: boolean;
   startTime: string;
   endTime: string;
-  onClick: (startTime: string, endTime: string) => void;
+  selectedDate: string;
+  onClick: (selectedDate: string, startTime: string, endTime: string) => void;
 }) => {
   return (
     <div
-      onClick={() => onClick(startTime, endTime)}
+      onClick={() => onClick(selectedDate, startTime, endTime)}
       className={`slot-box ${isActive && "isActiveSlot"}`}
     >
       <p>
